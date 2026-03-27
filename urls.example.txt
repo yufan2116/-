@@ -1,0 +1,11 @@
+# 示例 URL 文件
+# 每行一个 URL，以 # 开头的行为注释
+
+# Bilibili 视频
+# https://www.bilibili.com/video/BVxxxxx
+
+# 抖音视频（待实现）
+# https://www.douyin.com/video/xxxxx
+
+# 小红书视频（待实现）
+# https://www.xiaohongshu.com/explore/xxxxx

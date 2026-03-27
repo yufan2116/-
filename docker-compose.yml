@@ -1,0 +1,24 @@
+version: '3.8'
+
+services:
+  mvd:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: multi-video-dl:latest
+    container_name: multi-video-dl
+    volumes:
+      # 挂载下载目录到宿主机
+      - ./downloads:/downloads
+      # 可选：挂载 urls.txt 文件
+      - ./urls.txt:/app/urls.txt:ro
+      # 可选：挂载 cookies 文件
+      - ./cookies.txt:/app/cookies.txt:ro
+    environment:
+      - PYTHONUNBUFFERED=1
+      - MVD_OUTPUT_DIR=/downloads
+    # 覆盖默认命令
+    command: ["dl", "--help"]
+    # 如果需要交互式使用，取消下面的注释
+    # stdin_open: true
+    # tty: true

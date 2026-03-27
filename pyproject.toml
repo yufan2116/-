@@ -1,0 +1,55 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "multi-video-dl"
+version = "0.1.0"
+description = "统一的多平台视频下载器（B站/抖音/小红书）"
+readme = "README.md"
+requires-python = ">=3.11"
+license = {text = "MIT"}
+authors = [
+    {name = "Your Name", email = "your.email@example.com"},
+]
+keywords = ["video", "downloader", "bilibili", "douyin", "xiaohongshu"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+
+dependencies = [
+    "typer>=0.9.0",
+    "httpx>=0.25.0",
+    "pydantic>=2.0.0",
+    "yt-dlp>=2023.10.0",
+    "rich>=13.0.0",
+    "customtkinter>=5.2.0",
+    "tkinterdnd2>=0.4.3",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-asyncio>=0.21.0",
+    "black>=23.0.0",
+    "ruff>=0.1.0",
+]
+
+[project.scripts]
+mvd = "multi_video_dl.cli:app"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/multi_video_dl"]
+
+[tool.black]
+line-length = 100
+target-version = ["py311"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
