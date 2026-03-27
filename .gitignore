@@ -41,6 +41,9 @@ htmlcov/
 
 # Project specific
 downloads/
+downloads*/
+auth/
+ffmpeg/bin/
 *.metadata.json
 urls.txt
 
