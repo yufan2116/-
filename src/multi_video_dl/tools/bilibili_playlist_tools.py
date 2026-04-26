@@ -75,6 +75,27 @@ def _resolve_cookies_for_yt_dlp(cookies: Optional[str]) -> Optional[str]:
     return normalize_cookies_for_yt_dlp(cookies)
 
 
+def _get_yt_dlp_cmd_prefix() -> List[str]:
+    """
+    返回可用的 yt-dlp 命令前缀。
+    优先使用可执行文件；找不到时回退到 `python -m yt_dlp`。
+    """
+    # 1) 先找 venv 同目录（兼容历史行为）
+    py_dir = Path(sys.executable).resolve().parent
+    for name in ("yt-dlp.exe", "yt-dlp"):
+        p = py_dir / name
+        if p.exists():
+            return [str(p)]
+
+    # 2) 再找 PATH 里的 yt-dlp
+    bin_path = shutil.which("yt-dlp")
+    if bin_path:
+        return [bin_path]
+
+    # 3) 最后回退到 python -m yt_dlp（只要包已安装即可）
+    return [sys.executable, "-m", "yt_dlp"]
+
+
 @dataclass(frozen=True)
 class PlaylistEntry:
     index: int
@@ -90,14 +111,8 @@ def list_playlist_entries(
     """
     cookies_file = _resolve_cookies_for_yt_dlp(cookies)
 
-    yt_dlp_path = Path(sys.executable).resolve().parent / "yt-dlp.exe"
-    if not yt_dlp_path.exists():
-        yt_dlp_path = Path(sys.executable).resolve().parent / "yt-dlp"
-    if not yt_dlp_path.exists():
-        raise RuntimeError("无法找到 venv 内的 yt-dlp 可执行文件")
-
     cmd = [
-        str(yt_dlp_path),
+        *_get_yt_dlp_cmd_prefix(),
         "--flat-playlist",
         "--skip-download",
         "--yes-playlist",
@@ -210,7 +225,8 @@ def download_bilibili_playlist_direct(
         "merge_output_format": "mp4",
         "quiet": True,
         "no_warnings": True,
-        "ignoreerrors": True,
+        # 不吞掉错误。否则上层会误判“下载完成”。
+        "ignoreerrors": False,
         "skip_download": bool(dry_run),
         "progress_hooks": [],
     }
@@ -308,14 +324,8 @@ def download_bilibili_favlist_stable_by_flat_entries(
     """
     cookies_file = _resolve_cookies_for_yt_dlp(cookies)
 
-    yt_dlp_path = Path(sys.executable).resolve().parent / "yt-dlp.exe"
-    if not yt_dlp_path.exists():
-        yt_dlp_path = Path(sys.executable).resolve().parent / "yt-dlp"
-    if not yt_dlp_path.exists():
-        raise RuntimeError("无法找到 venv 内的 yt-dlp 可执行文件")
-
     cmd = [
-        str(yt_dlp_path),
+        *_get_yt_dlp_cmd_prefix(),
         "--yes-playlist",
         "--flat-playlist",
         "--skip-download",

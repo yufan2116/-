@@ -39,6 +39,11 @@ ENV/
 htmlcov/
 .tox/
 
+# Downloaded media in working tree
+*.mp4
+*.mkv
+*.m4a
+
 # Project specific
 downloads/
 downloads*/

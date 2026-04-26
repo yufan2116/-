@@ -14,8 +14,6 @@ from typing import Literal, Optional
 
 HOME_URLS: dict[str, str] = {
     "bilibili": "https://www.bilibili.com/",
-    "douyin": "https://www.douyin.com/",
-    "xiaohongshu": "https://www.xiaohongshu.com/",
 }
 
 ConfirmMode = Literal["enter", "button", "either"]
@@ -77,6 +75,15 @@ async def _wait_enter() -> str:
 async def _wait_button(context) -> str:
     key = "__mvd_login_done__"
     while True:
+        # 自动检测登录态（无需必须点击按钮）
+        try:
+            cookies = await context.cookies()
+            names = {str(c.get("name") or "") for c in cookies}
+            if "SESSDATA" in names or "DedeUserID" in names:
+                return "auto-cookie-detected"
+        except Exception:
+            pass
+
         for page in context.pages:
             try:
                 done = await page.evaluate(

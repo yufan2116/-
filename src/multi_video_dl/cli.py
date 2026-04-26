@@ -24,7 +24,6 @@ from .core.utils import check_ffmpeg, check_ytdlp, read_urls_file
 from .extractors import EXTRACTORS, get_extractor_for_url
 from .browser.login_capture import (
     capture_login_storage_state,
-    HOME_URLS,
     ConfirmMode,
     BrowserType,
 )
@@ -37,7 +36,7 @@ from .tools.bilibili_playlist_tools import (
 
 app = typer.Typer(
     name="mvd",
-    help="Multi Video Downloader - 统一的多平台视频下载器",
+    help="Bilibili 视频下载器（CLI）",
     add_completion=False,
 )
 console = Console()
@@ -294,7 +293,7 @@ async def single_download(
             extractor = get_extractor_for_url(page_url)
             if not extractor:
                 rprint(f"[red]错误: 不支持的平台 URL: {page_url}[/red]")
-                rprint("[yellow]提示: 目前支持 Bilibili，抖音和小红书待实现[/yellow]")
+                rprint("[yellow]提示: 仅支持 Bilibili 链接或 BV/av 等输入[/yellow]")
                 raise typer.Exit(1)
 
             rprint(f"[green]检测到平台: {extractor.get_platform_name()}[/green]")
@@ -437,9 +436,8 @@ async def batch_download(
 
 @app.command("capture-login")
 def capture_login(
-    platform: str = typer.Argument(..., help="平台：bilibili|douyin|xiaohongshu"),
     output: str = typer.Option(
-        "./auth/storage_state.json", "--output", "-o", help="storageState 输出 JSON 路径"
+        "./auth/bilibili_state.json", "--output", "-o", help="storageState 输出 JSON 路径"
     ),
     confirm_mode: str = typer.Option(
         "either", "--confirm-mode", help="确认方式：enter|button|either"
@@ -453,13 +451,8 @@ def capture_login(
         False, "--force", help="强制重新登录并覆盖已存在的 storageState 文件"
     ),
 ):
-    """启动可见浏览器，手动登录后捕获 Playwright storageState。"""
-    platform_normalized = platform.strip().lower()
-    if platform_normalized not in HOME_URLS:
-        rprint(
-            f"[red]错误: platform 必须是 bilibili|douyin|xiaohongshu，当前为 {platform}[/red]"
-        )
-        raise typer.Exit(1)
+    """启动可见浏览器，在 B 站手动登录后捕获 Playwright storageState。"""
+    platform_normalized = "bilibili"
 
     if confirm_mode not in {"enter", "button", "either"}:
         rprint(

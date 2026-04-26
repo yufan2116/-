@@ -2,14 +2,9 @@
 
 from .base import BaseExtractor
 from .bilibili import BilibiliExtractor
-from .douyin import DouyinExtractor
-from .xhs import XHSExtractor
 
-# 注册所有 extractors
 EXTRACTORS = {
     "bilibili": BilibiliExtractor(),
-    "douyin": DouyinExtractor(),
-    "xhs": XHSExtractor(),
 }
 
 

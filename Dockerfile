@@ -10,10 +10,6 @@ RUN apt-get update && apt-get install -y \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-# 安装 Playwright 及 Chromium（用于浏览器嗅探器）
-RUN pip install --no-cache-dir playwright && \
-    python -m playwright install --with-deps chromium
-
 # 复制项目文件
 COPY pyproject.toml README.md ./
 COPY src/ ./src/

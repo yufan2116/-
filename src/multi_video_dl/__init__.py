@@ -1,3 +1,3 @@
-"""Multi Video Downloader - 统一的多平台视频下载器"""
+"""Bilibili 视频下载工具（CLI / Web 控制台）"""
 
 __version__ = "0.1.0"

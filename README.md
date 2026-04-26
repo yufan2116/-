@@ -1,177 +1,84 @@
 # multi_video_dl
 
-统一的多平台视频下载器（B站/抖音/小红书），支持无水印下载。
+Bilibili（B 站）视频下载器：支持 CLI 与本地 Web 控制台，基于 yt-dlp 解析与统一下载管线。
 
 ## 功能特性
 
-- 🎯 支持多个视频平台（B站、抖音、小红书）
-- 🚫 优先下载无水印版本
-- 📦 批量下载支持
-- 🔄 断点续传
-- 📝 元数据保存
-- 🎨 自定义文件名模板
-- ⚡ 并发下载
+- B 站视频 / 番剧 / 短链（b23.tv）等链接解析，支持 BV、av、纯数字输入
+- 分 P、合集（playlist）与清晰度选择
+- 批量下载、并发、元数据与自定义文件名模板
+- 可选：Playwright 捕获 B 站登录态（`storageState`）供高码率或风控场景使用
 
 ## 安装
 
-### 方式一：Docker（推荐）
-
-使用 Docker 可以避免本地环境配置问题，所有依赖都已包含在镜像中。
+### 方式一：Docker
 
 ```bash
-# 构建镜像
 docker build -t multi-video-dl:latest .
 
-# 使用（下载文件会保存到 ./downloads 目录）
 docker run --rm -v $(pwd)/downloads:/downloads \
   multi-video-dl:latest dl https://www.bilibili.com/video/BVxxxxx
 ```
 
-详细说明请参考 [Docker 使用指南](README.Docker.md)
+详细说明见 [Docker 使用指南](README.Docker.md)。
 
 ### 方式二：本地安装
 
-#### 前置依赖
-
 1. **Python 3.11+**
-2. **ffmpeg**（用于 m3u8 下载）
-   - Windows: 下载 [ffmpeg](https://ffmpeg.org/download.html) 并添加到 PATH
-   - macOS: `brew install ffmpeg`
-   - Linux: `sudo apt install ffmpeg` 或 `sudo yum install ffmpeg`
-3. **yt-dlp**（自动通过 pip 安装）
-
-#### 安装步骤
-
-```bash
-# 克隆或下载项目后
-cd multi_video_dl
-pip install -e .
-
-# 或使用 uv/poetry
-uv pip install -e .
-# 或
-poetry install
-```
+2. **ffmpeg**（m3u8 等场景）
+3. 项目目录下：`pip install -e .`（会安装 **yt-dlp** 等依赖）
 
 ## 使用方法
 
-### 基本用法
+### Web 控制台
 
 ```bash
-# 下载单个视频
+python run_gui_entry.py
+```
+
+默认打开 `http://127.0.0.1:8765`，可进行链接预览、一键登录 B 站、下载与日志查看。
+
+### CLI
+
+```bash
 mvd dl https://www.bilibili.com/video/BVxxxxx
-
-# 指定输出目录
 mvd dl https://www.bilibili.com/video/BVxxxxx --out ./downloads
-
-# 预览模式（不实际下载）
-mvd dl https://www.bilibili.com/video/BVxxxxx --dry-run
-
-# 批量下载
 mvd dl -i urls.txt --out ./downloads
+mvd dl <url> --dry-run
 ```
 
-### 高级选项
+分 P / 合集等选项与原先一致，参见 `mvd dl --help`。
+
+### 登录态捕获（可选）
+
+需本地安装：`pip install playwright` 且 `playwright install chromium`。
 
 ```bash
-# 自定义文件名模板
-mvd dl <url> --template "{author} - {title} ({id})"
-
-# 元数据保存方式
-mvd dl <url> --meta json        # 仅保存 .metadata.json
-mvd dl <url> --meta filename    # 仅写入文件名
-mvd dl <url> --meta both        # 两者都保存
-
-# 并发下载
-mvd dl -i urls.txt --concurrency 4
-
-# 指定后端
-mvd dl <url> --backend ytdlp   # 使用 yt-dlp
-mvd dl <url> --backend auto    # 自动选择
-
-# 分P（B站多P）
-# 默认不填则下载全部P；可填如 1 或 1,3-5 或 ALL
-mvd dl <url> -I 1
-mvd dl <url> -I 1,3-5
-mvd dl <url> --only-current
-
-# 合集（playlist）
-# 默认不填则下载全部条目；可用 -I 指定，如 1 或 1,3-5
-mvd dl <合集链接> -I 1,3-5
-mvd dl <合集链接> --only-current
-mvd dl <合集链接> --playlist-start 10 --playlist-end 20
-mvd dl <合集链接> --match-filter "title*=第01集"
-mvd dl <合集链接> --dateafter 20250101
-mvd dl <合集链接> --playlist-reverse
-
-# 使用 cookies（可选）
-# 支持两种格式：
-# - `cookies.txt`：Netscape 格式（yt-dlp 直接使用）
-# - `storage_state.json`：Playwright storageState（会自动转换成 cookies.txt）
-mvd dl <url> --cookies cookies.txt
-
-# 详细日志
-mvd dl <url> --verbose
-```
-
-### 一键登录态捕获（Playwright storageState）
-
-```bash
-# 打开可见浏览器，手动登录后按回车或点击页面右下角“已登录完成”
-mvd capture-login bilibili -o ./auth/bilibili_storage_state.json
-
-# 也可指定抖音/小红书
-mvd capture-login douyin -o ./auth/douyin_storage_state.json
-mvd capture-login xiaohongshu -o ./auth/xhs_storage_state.json
-
-# 若文件已存在，默认不再弹登录窗口（首次登录后可一直复用）
-mvd capture-login douyin -o ./auth/douyin_storage_state.json
-
-# 登录失效时，使用 --force 重新登录并覆盖
-mvd capture-login douyin -o ./auth/douyin_storage_state.json --force
-
-# 下载时复用登录态（--cookies 支持传入 storageState json）
-mvd dl <url> --cookies ./auth/douyin_storage_state.json
+mvd capture-login -o ./auth/bilibili_state.json
+mvd capture-login -o ./auth/bilibili_state.json --force
+mvd dl <url> --cookies ./auth/bilibili_state.json
 ```
 
 ### 文件名模板变量
 
-- `{platform}` - 平台名称（bilibili/douyin/xiaohongshu）
-- `{author}` - 作者/UP主
-- `{title}` - 视频标题
-- `{id}` - 视频ID
+- `{platform}` - 平台名称（bilibili）
+- `{author}` - UP 主
+- `{title}` - 标题
+- `{id}` - 视频 ID
 - `{date}` - 发布日期（YYYYMMDD）
-- `{ext}` - 文件扩展名
+- `{ext}` - 扩展名
 
-### urls.txt 格式
+### urls.txt
 
-```
-# 这是注释，会被忽略
-https://www.bilibili.com/video/BVxxxxx1
-https://www.bilibili.com/video/BVxxxxx2
-
-# 空行也会被忽略
-https://www.bilibili.com/video/BVxxxxx3
-```
+支持 `#` 注释、空行；每行可为完整 URL 或 BV/av 等（与 CLI 一致）。
 
 ## 架构说明
 
-项目采用插件化架构：
-
-- **Extractors**: 各平台的解析器（`extractors/`）
-- **Downloaders**: 下载器（httpx、ffmpeg、yt-dlp）
-- **Store**: 文件存储和元数据管理
-- **Pipeline**: 统一的处理流程
+- **extractors**：`BilibiliExtractor`（yt-dlp）
+- **downloaders**：httpx / ffmpeg / yt-dlp
+- **Pipeline**：统一解析、选择清晰度、落盘与元数据
 
 ## 开发
-
-### 添加新平台
-
-1. 在 `extractors/` 目录创建新的 extractor（继承 `BaseExtractor`）
-2. 实现 `match()` 和 `parse()` 方法
-3. 在 `extractors/__init__.py` 中注册
-
-### 运行测试
 
 ```bash
 pytest tests/
@@ -183,6 +90,5 @@ MIT License
 
 ## 注意事项
 
-- 请遵守各平台的使用条款
-- 下载的内容仅供个人学习使用
-- 不要用于商业用途或大规模爬取
+- 请遵守 B 站服务条款与版权规定
+- 下载内容仅供个人学习使用

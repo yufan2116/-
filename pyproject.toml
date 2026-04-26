@@ -5,14 +5,14 @@ build-backend = "hatchling.build"
 [project]
 name = "multi-video-dl"
 version = "0.1.0"
-description = "统一的多平台视频下载器（B站/抖音/小红书）"
+description = "Bilibili 视频下载器（CLI + Web 控制台）"
 readme = "README.md"
 requires-python = ">=3.11"
 license = {text = "MIT"}
 authors = [
     {name = "Your Name", email = "your.email@example.com"},
 ]
-keywords = ["video", "downloader", "bilibili", "douyin", "xiaohongshu"]
+keywords = ["video", "downloader", "bilibili"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
